@@ -1,9 +1,9 @@
 
 # Prepare a key pair (required by KafkaConnect)
-  ```openssl genrsa 2048 | openssl pkcs8 -topk8 -v2 aes256 -inform PEM -out rsa_key.p8```
+  `openssl genrsa 2048 | openssl pkcs8 -topk8 -v2 aes256 -inform PEM -out rsa_key.p8`
   ## this is your private key (to use in Confluent & Snowsql)
-    ```cat rsa_key.p8```
-  ```openssl rsa -in rsa_key.p8 -pubout -out rsa_key.pub```
+    `cat rsa_key.p8`
+  `openssl rsa -in rsa_key.p8 -pubout -out rsa_key.pub`
   ## this is your public key (to associate w/Snowflake user : RSA_PU£BLIC_KEY)
     ```cat rsa_key.pub```
 
