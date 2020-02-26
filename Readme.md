@@ -1,9 +1,43 @@
+# Snowflake-KafkaConnect-Quickstart
+Consuming Kafka messages from Confluent and loading messages payload into a table (per topic)
 
+Online documentation : https://docs.snowflake.net/manuals/user-guide/kafka-connector.html
 
+## Prerequisites
+* Docker version 1.11 or later is installed and running.
+* Docker Compose is installed. Docker Compose is installed by default with Docker for Mac.
+* Docker memory is allocated minimally at 8 GB. When using Docker Desktop for Mac, the default Docker memory allocation is 2 GB. You can change the default allocation to 8 GB in Docker > Preferences > Advanced.
+* Git.
+* Internet connectivity.
+* Ensure you are on an Operating System currently supported by Confluent Platform.
+* Networking and Kafka on Docker: Configure your hosts and ports to allow both internal and external components to the Docker network to communicate. For more details, see this article.
+
+## Introduction
+Kafka Connect is a framework for connecting Kafka with external systems, including databases. A Kafka Connect cluster is a separate cluster from the Kafka cluster. The Kafka Connect cluster supports running and scaling out connectors (components that support reading and/or writing between external systems).
+
+The Kafka connector is designed to run in a Kafka Connect cluster to read data from Kafka topics and write the data into Snowflake tables. Snowflake provides two versions of the connector:
+
+* A version for the Confluentpackage version of Kafka.
+For more information about Kafka Connect, see https://docs.confluent.io/3.0.0/connect/.
+
+* A version for the open source software (OSS) Apache Kafka package.
+For more information about Apache Kafka, see https://kafka.apache.org/.
+
+From the perspective of Snowflake, a Kafka topic produces a stream of rows to be inserted into a Snowflake table. In general, each Kafka message contains one row.
+
+Kafka, like many message publish/subscribe platforms, allows a many-to-many relationship between publishers and subscribers. A single application can publish to many topics, and a single application can subscribe to multiple topics. With Snowflake, the typical pattern is that one topic supplies messages (rows) for one Snowflake table.
+
+## What's in this tutorial ?
+In this tutorial we are going to deploy a Confluent Kafka cluster, setup the Snowflake Kafka Connector and Generate dummy messages every 100ms that will be automatically consumed and inserted into a Snowflake table without custom code.
+
+![](https://docs.snowflake.net/manuals/_images/kafka-connector-flow.png)
+
+## To begin
+### Retrieve this github repo
+```
 git clone https://github.com/kromozome2003/Snowflake-KafkaConnect-Quickstart.git
 cd Snowflake-KafkaConnect-Quickstart
-
-
+```
 
 ## Prepare a key pair (required by KafkaConnect)
 ### A more detailed tuto is available [here](https://docs.snowflake.net/manuals/user-guide/kafka-connector-install.html#using-key-pair-authentication)
@@ -86,15 +120,6 @@ snowsql -a eu_demo32.eu-central-1 -u kafka_demo --private-key-path rsa_key.p8
 
 ## Confluent Kafka Initial Setup
 A mode detailed tutorial is available [here](https://docs.confluent.io/current/quickstart/ce-docker-quickstart.html)
-
-### Prerequisites
-* Docker version 1.11 or later is installed and running.
-* Docker Compose is installed. Docker Compose is installed by default with Docker for Mac.
-* Docker memory is allocated minimally at 8 GB. When using Docker Desktop for Mac, the default Docker memory allocation is 2 GB. You can change the default allocation to 8 GB in Docker > Preferences > Advanced.
-* Git.
-* Internet connectivity.
-* Ensure you are on an Operating System currently supported by Confluent Platform.
-* Networking and Kafka on Docker: Configure your hosts and ports to allow both internal and external components to the Docker network to communicate. For more details, see this article.
 
 ### In a terminal, deploy the Confluent Quickstart Containers
 ```
