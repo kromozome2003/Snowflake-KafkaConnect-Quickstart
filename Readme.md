@@ -30,7 +30,7 @@ Kafka, like many message publish/subscribe platforms, allows a many-to-many rela
 ## What's in this tutorial ?
 In this tutorial we are going to deploy a Confluent Kafka cluster, setup the Snowflake Kafka Connector and Generate dummy messages every 100ms that will be automatically consumed and inserted into a Snowflake table without custom code.
 
-![](https://docs.snowflake.net/manuals/_images/kafka-connector-flow.png)
+![](/Images/traditional-approach.png)
 
 ## To begin
 ### Retrieve this github repo
