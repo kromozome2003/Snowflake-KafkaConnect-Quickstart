@@ -63,7 +63,7 @@ In order to be able to consume messages from our Kafka Connector you need to cre
 A more detailed procedure is available [Here](https://docs.snowflake.net/manuals/user-guide/kafka-connector-install.html)
 ### Create a Snowflake DB
 ```
-DROP TABLE IF EXISTS KAFKA_DB;
+DROP DATABASE IF EXISTS KAFKA_DB;
 CREATE OR REPLACE DATABASE KAFKA_DB COMMENT = 'Database for KafkaConnect demo';
 ```
 
