@@ -53,7 +53,7 @@ Then, generate a public key based on the private one
 ```
 openssl rsa -in rsa_key.p8 -pubout -out rsa_key.pub
 ```
-below is the file where your public key has been stored (to associate w/Snowflake user : RSA_PU£BLIC_KEY)
+below is the file where your public key has been stored (to associate w/Snowflake user : RSA_PUBLIC_KEY)
 ```
 cat rsa_key.pub
 ```
@@ -132,7 +132,7 @@ docker-compose ps
 ### Confluent Kafka is now Deployed in Docker, Up & Running.
 Open a web browser (Chrome) and go to [http://localhost:9021/](http://localhost:9021/)
 
-### Let's create your first Topic `pageviews` (in the same terminal)
+### Let's create some 'dummy' topics (in the same terminal)
 ```
 docker-compose exec connect bash -c 'kafka-topics --create --topic pageviews --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181'
 docker-compose exec connect bash -c 'kafka-topics --create --topic stock_trades --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181'
