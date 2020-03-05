@@ -70,6 +70,7 @@ CREATE OR REPLACE DATABASE KAFKA_DB COMMENT = 'Database for KafkaConnect demo';
 ### Create a Snowflake ROLE
 ```
 USE ROLE SECURITYADMIN;
+DROP ROLE IF EXISTS KAFKA_CONNECTOR_ROLE;
 CREATE ROLE KAFKA_CONNECTOR_ROLE;
 GRANT USAGE ON DATABASE KAFKA_DB TO ROLE KAFKA_CONNECTOR_ROLE;
 GRANT USAGE ON DATABASE KAFKA_DB TO ACCOUNTADMIN;
@@ -82,6 +83,7 @@ GRANT CREATE PIPE ON SCHEMA KAFKA_DB.PUBLIC TO ROLE KAFKA_CONNECTOR_ROLE;
 ```
 ### Create a Snowflake WAREHOUSE (for admin purpose as KafkaConnect is Serverless)
 ```
+USE ROLE ACCOUNTADMIN;
 CREATE OR REPLACE WAREHOUSE KAFKA_ADMIN_WAREHOUSE
   WAREHOUSE_SIZE = 'XSMALL'
   WAREHOUSE_TYPE = 'STANDARD'
@@ -133,6 +135,11 @@ Open a web browser (Chrome) and go to [http://localhost:9021/](http://localhost:
 ### Let's create your first Topic `pageviews` (in the same terminal)
 ```
 docker-compose exec connect bash -c 'kafka-topics --create --topic pageviews --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181'
+docker-compose exec connect bash -c 'kafka-topics --create --topic stock_trades --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181'
+docker-compose exec connect bash -c 'kafka-topics --create --topic clickstream --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181'
+docker-compose exec connect bash -c 'kafka-topics --create --topic orders --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181'
+docker-compose exec connect bash -c 'kafka-topics --create --topic ratings --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181'
+docker-compose exec connect bash -c 'kafka-topics --create --topic users --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181'
 ```
 
 ### Let's deploy Snowflake Kafka Connector for Confluent in the `connect` container
@@ -151,10 +158,10 @@ You can see the log with : `docker-compose logs connect | grep -i snowflake`
 * 1 for Snowflake Sink connector to consume & load those messages into your Snowflake KAFKA_DB (SnowflakeSinkConnector)
 
 In the browser [http://localhost:9021/](http://localhost:9021/)
-* Cluster 1 -> Connect -> `connect-default` -> Add Connector -> Upload connector config file -> `connector_snowflake.json`
+* Cluster 1 -> Connect -> `connect-default` -> Add Connector -> Upload connector config file -> `connector_snowflake_xxx.json`
 Update Snowflake Login Info -> Continue -> Launch (Should see : Running)
-* Cluster 1 -> Connect -> `connect-default` -> Upload connector config file -> `connector_datagen-pageviews_config.json` -> Continue -> Launch (Should see : Running)
-* Cluster 1 -> Topics -> `pageviews` -> Messages (messages should appears)
+* Cluster 1 -> Connect -> `connect-default` -> Upload connector config file -> `connector_datagen_xxx.json` -> Continue -> Launch (Should see : Running)
+* Cluster 1 -> Topics -> `xxx` -> Messages (messages should appears)
 
 ### Check if messages arrives in Snowflake table (logged as KAFKA_DEMO user)
 ```
@@ -162,8 +169,20 @@ USE ROLE KAFKA_CONNECTOR_ROLE;
 USE DATABASE KAFKA_DB;
 USE SCHEMA PUBLIC;
 USE WAREHOUSE KAFKA_ADMIN_WAREHOUSE;
+SHOW TABLES;
 SELECT * FROM KAFKA_DB.PUBLIC.PAGEVIEWS;
 SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.PAGEVIEWS', start_time=> dateadd(hours, -1, current_timestamp())));
+SELECT * FROM KAFKA_DB.PUBLIC.ORDERS;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.ORDERS', start_time=> dateadd(hours, -1, current_timestamp())));
+SELECT * FROM KAFKA_DB.PUBLIC.RATINGS;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.RATINGS', start_time=> dateadd(hours, -1, current_timestamp())));
+SELECT * FROM KAFKA_DB.PUBLIC.;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.STOCK_TRADES', start_time=> dateadd(hours, -1, current_timestamp())));
+SELECT * FROM KAFKA_DB.PUBLIC.USERS;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.USERS', start_time=> dateadd(hours, -1, current_timestamp())));
+SELECT * FROM KAFKA_DB.PUBLIC.CLICKSTREAM;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.CLICKSTREAM', start_time=> dateadd(hours, -1, current_timestamp())));
+
 ```
 
 Mike Uzan - Senior SE (EMEA/France)

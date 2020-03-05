@@ -1,14 +1,19 @@
 {
-  "name": "sfkafkaconnect",
+  "name": "sf_kafka_connect",
   "connector.class": "com.snowflake.kafka.connector.SnowflakeSinkConnector",
   "key.converter": "org.apache.kafka.connect.storage.StringConverter",
   "value.converter": "com.snowflake.kafka.connector.records.SnowflakeAvroConverter",
   "topics": [
-    "pageviews"
+    "pageviews",
+    "orders",
+    "ratings",
+    "stock_trades",
+    "users",
+    "clickstream"
   ],
-  "snowflake.url.name": "https://<your-account>.snowflakecomputing.com:443",
+  "snowflake.url.name": "https://<your_account>.snowflakecomputing.com:443",
   "snowflake.user.name": "kafka_demo",
-  "snowflake.private.key": "update with your private_key",
+  "snowflake.private.key": "",
   "snowflake.private.key.passphrase": "passphrase",
   "snowflake.database.name": "KAFKA_DB",
   "snowflake.schema.name": "PUBLIC",
