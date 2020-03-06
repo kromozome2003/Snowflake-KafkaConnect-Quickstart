@@ -47,7 +47,7 @@ openssl genrsa 2048 | openssl pkcs8 -topk8 -v2 aes256 -inform PEM -out rsa_key.p
 ```
 below is the file where your private key has been stored (to use in Confluent & Snowsql)
 ```
-cat rsa_key.p8
+cat rsa_key.p8 | awk ' !/-----/ {printf $1}'
 ```
 Then, generate a public key based on the private one
 ```
@@ -55,7 +55,7 @@ openssl rsa -in rsa_key.p8 -pubout -out rsa_key.pub
 ```
 below is the file where your public key has been stored (to associate w/Snowflake user : RSA_PUBLIC_KEY)
 ```
-cat rsa_key.pub
+cat rsa_key.pub | awk '!/-----/{printf $1}'
 ```
 
 ## Snowflake Initial Setup
@@ -72,11 +72,11 @@ CREATE OR REPLACE DATABASE KAFKA_DB COMMENT = 'Database for KafkaConnect demo';
 USE ROLE SECURITYADMIN;
 DROP ROLE IF EXISTS KAFKA_CONNECTOR_ROLE;
 CREATE ROLE KAFKA_CONNECTOR_ROLE;
-GRANT USAGE ON DATABASE KAFKA_DB TO ROLE KAFKA_CONNECTOR_ROLE;
-GRANT USAGE ON DATABASE KAFKA_DB TO ACCOUNTADMIN;
-GRANT USAGE ON SCHEMA KAFKA_DB.PUBLIC TO ROLE KAFKA_CONNECTOR_ROLE;
+GRANT ALL ON DATABASE KAFKA_DB TO ROLE KAFKA_CONNECTOR_ROLE;
+GRANT ALL ON DATABASE KAFKA_DB TO ACCOUNTADMIN;
+GRANT ALL ON SCHEMA KAFKA_DB.PUBLIC TO ROLE KAFKA_CONNECTOR_ROLE;
 GRANT ALL ON FUTURE TABLES IN SCHEMA KAFKA_DB.PUBLIC TO KAFKA_CONNECTOR_ROLE;
-GRANT USAGE ON SCHEMA KAFKA_DB.PUBLIC TO ROLE ACCOUNTADMIN;
+GRANT ALL ON SCHEMA KAFKA_DB.PUBLIC TO ROLE ACCOUNTADMIN;
 GRANT CREATE TABLE ON SCHEMA KAFKA_DB.PUBLIC TO ROLE KAFKA_CONNECTOR_ROLE;
 GRANT CREATE STAGE ON SCHEMA KAFKA_DB.PUBLIC TO ROLE KAFKA_CONNECTOR_ROLE;
 GRANT CREATE PIPE ON SCHEMA KAFKA_DB.PUBLIC TO ROLE KAFKA_CONNECTOR_ROLE;
@@ -111,6 +111,50 @@ CREATE USER KAFKA_DEMO
  MUST_CHANGE_PASSWORD = FALSE
  RSA_PUBLIC_KEY="<your_private_key>";
 GRANT ROLE KAFKA_CONNECTOR_ROLE TO USER KAFKA_DEMO;
+```
+
+### Create some views for Tableau dashboards
+```
+USE ROLE KAFKA_CONNECTOR_ROLE;
+USE DATABASE KAFKA_DB;
+USE SCHEMA PUBLIC;
+USE WAREHOUSE KAFKA_ADMIN_WAREHOUSE;
+
+-- Clickstream view from AVRO records
+
+CREATE OR REPLACE SECURE VIEW CLICKSTREAM_VW AS
+SELECT
+    RECORD_CONTENT:_time::string _TIME,
+    RECORD_CONTENT:agent::string AGENT,
+    RECORD_CONTENT:bytes::string BYTES,
+    RECORD_CONTENT:ip::string IP,
+    RECORD_CONTENT:referrer::string REFERRER,
+    RECORD_CONTENT:remote_user::string REMOTE_USER,
+    RECORD_CONTENT:request::string REQUEST,
+    RECORD_CONTENT:status::string STATUS,
+    RECORD_CONTENT:time::string TIME,
+    RECORD_CONTENT:userid::string USERID
+    FROM CLICKSTREAM;
+
+CREATE OR REPLACE SECURE VIEW PAGEVIEWS_VW AS
+SELECT
+    RECORD_CONTENT:pageid::string PAGEID,
+    RECORD_CONTENT:userid::string USERID,
+    RECORD_CONTENT:viewtime::string VIEWTIME
+    FROM PAGEVIEWS;
+
+CREATE OR REPLACE SECURE VIEW ORDERS_VW AS
+SELECT
+    RECORD_CONTENT:address:city::string CITY,
+    RECORD_CONTENT:address:state::string STATE,
+    RECORD_CONTENT:address:zipcode::int ZIPCODE,
+    RECORD_CONTENT:itemid::string ITEMID,
+    RECORD_CONTENT:orderid::int ORDERID,
+    RECORD_CONTENT:ordertime::int ORDERTIME,
+    RECORD_CONTENT:orderunits::float ORDERUNITS
+    FROM ORDERS;
+
+
 ```
 
 ### Test the setup with SnowSQL
@@ -169,19 +213,38 @@ USE ROLE KAFKA_CONNECTOR_ROLE;
 USE DATABASE KAFKA_DB;
 USE SCHEMA PUBLIC;
 USE WAREHOUSE KAFKA_ADMIN_WAREHOUSE;
+
 SHOW TABLES;
-SELECT * FROM KAFKA_DB.PUBLIC.PAGEVIEWS;
-SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.PAGEVIEWS', start_time=> dateadd(hours, -1, current_timestamp())));
-SELECT * FROM KAFKA_DB.PUBLIC.ORDERS;
-SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.ORDERS', start_time=> dateadd(hours, -1, current_timestamp())));
-SELECT * FROM KAFKA_DB.PUBLIC.RATINGS;
-SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.RATINGS', start_time=> dateadd(hours, -1, current_timestamp())));
-SELECT * FROM KAFKA_DB.PUBLIC.;
-SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.STOCK_TRADES', start_time=> dateadd(hours, -1, current_timestamp())));
-SELECT * FROM KAFKA_DB.PUBLIC.USERS;
-SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.USERS', start_time=> dateadd(hours, -1, current_timestamp())));
-SELECT * FROM KAFKA_DB.PUBLIC.CLICKSTREAM;
-SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA.PUBLIC.CLICKSTREAM', start_time=> dateadd(hours, -1, current_timestamp())));
+
+-- Pageviews
+SELECT count(*) FROM KAFKA_DB.PUBLIC.PAGEVIEWS;
+SELECT * FROM KAFKA_DB.PUBLIC.PAGEVIEWS LIMIT 10;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA_DB.PUBLIC.PAGEVIEWS', start_time=> dateadd(hours, -1, current_timestamp())));
+
+-- Orders
+SELECT count(*) FROM KAFKA_DB.PUBLIC.ORDERS;
+SELECT * FROM KAFKA_DB.PUBLIC.ORDERS LIMIT 10;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA_DB.PUBLIC.ORDERS', start_time=> dateadd(hours, -1, current_timestamp())));
+
+-- Ratings
+SELECT count(*) FROM KAFKA_DB.PUBLIC.RATINGS;
+SELECT * FROM KAFKA_DB.PUBLIC.RATINGS LIMIT 10;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA_DB.PUBLIC.RATINGS', start_time=> dateadd(hours, -1, current_timestamp())));
+
+-- Stock_trades
+SELECT count(*) FROM KAFKA_DB.PUBLIC.STOCK_TRADES;
+SELECT * FROM KAFKA_DB.PUBLIC.STOCK_TRADES LIMIT 10;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA_DB.PUBLIC.STOCK_TRADES', start_time=> dateadd(hours, -1, current_timestamp())));
+
+-- Users
+SELECT count(*) FROM KAFKA_DB.PUBLIC.USERS;
+SELECT * FROM KAFKA_DB.PUBLIC.USERS LIMIT 10;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA_DB.PUBLIC.USERS', start_time=> dateadd(hours, -1, current_timestamp())));
+
+-- Clickstream
+SELECT count(*) FROM KAFKA_DB.PUBLIC.CLICKSTREAM;
+SELECT * FROM KAFKA_DB.PUBLIC.CLICKSTREAM LIMIT 10;
+SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA_DB.PUBLIC.CLICKSTREAM', start_time=> dateadd(hours, -1, current_timestamp())));
 
 ```
 
