@@ -234,7 +234,7 @@ You can see the log with : `docker-compose logs connect | grep -i snowflake`
 * 1 for Snowflake Sink connector to consume & load those messages into your Snowflake KAFKA_DB (SnowflakeSinkConnector)
 
 In the browser [http://localhost:9021/](http://localhost:9021/)
-* Cluster 1 -> Connect -> `connect-default` -> Add Connector -> Upload connector config file -> `connector_snowflake_xxx.json`
+* Cluster 1 -> Connect -> `connect-default` -> Add Connector -> Upload connector config file -> `connector_snowflake.json`
 Update Snowflake Login Info -> Continue -> Launch (Should see : Running)
 * Cluster 1 -> Connect -> `connect-default` -> Upload connector config file -> `connector_datagen_xxx.json` -> Continue -> Launch (Should see : Running)
 * Cluster 1 -> Topics -> `xxx` -> Messages (messages should appears)
