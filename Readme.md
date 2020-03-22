@@ -280,6 +280,12 @@ SELECT * FROM TABLE(information_schema.copy_history(table_name=>'KAFKA_DB.PUBLIC
 
 ```
 
+## Stopping Confluent containers
+```
+docker-compose stop
+docker-compose ps
+```
+
 Mike Uzan - Senior SE (EMEA/France)
 mike.uzan@snowflake.com
 +33621728792
